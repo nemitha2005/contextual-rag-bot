@@ -12,7 +12,7 @@ import {
 } from "@/components/icons";
 import { Editor } from "@/components/text-editor";
 import type { Suggestion } from "@/lib/db/schema";
-import { getSuggestions } from "../actions";
+import { getSuggestions } from "@/artifacts/actions";
 
 type TextArtifactMetadata = {
   suggestions: Suggestion[];

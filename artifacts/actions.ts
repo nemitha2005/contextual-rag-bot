@@ -1,8 +1,9 @@
-"use server";
+import type { Suggestion } from "@/lib/db/schema";
 
-import { getSuggestionsByDocumentId } from "@/lib/db/queries";
-
-export async function getSuggestions({ documentId }: { documentId: string }) {
-  const suggestions = await getSuggestionsByDocumentId({ documentId });
-  return suggestions ?? [];
+export async function getSuggestions({
+  documentId: _documentId,
+}: {
+  documentId: string;
+}): Promise<Suggestion[]> {
+  return [];
 }
