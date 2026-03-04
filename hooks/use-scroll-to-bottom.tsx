@@ -7,7 +7,6 @@ export function useScrollToBottom() {
   const isAtBottomRef = useRef(true);
   const isUserScrollingRef = useRef(false);
 
-  // Keep ref in sync with state
   useEffect(() => {
     isAtBottomRef.current = isAtBottom;
   }, [isAtBottom]);
@@ -30,7 +29,6 @@ export function useScrollToBottom() {
     });
   }, []);
 
-  // Handle user scroll events
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {
@@ -40,16 +38,13 @@ export function useScrollToBottom() {
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     const handleScroll = () => {
-      // Mark as user scrolling
       isUserScrollingRef.current = true;
       clearTimeout(scrollTimeout);
 
-      // Update isAtBottom state
       const atBottom = checkIfAtBottom();
       setIsAtBottom(atBottom);
       isAtBottomRef.current = atBottom;
 
-      // Reset user scrolling flag after scroll ends
       scrollTimeout = setTimeout(() => {
         isUserScrollingRef.current = false;
       }, 150);
@@ -62,7 +57,6 @@ export function useScrollToBottom() {
     };
   }, [checkIfAtBottom]);
 
-  // Auto-scroll when content changes
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {
@@ -70,7 +64,6 @@ export function useScrollToBottom() {
     }
 
     const scrollIfNeeded = () => {
-      // Only auto-scroll if user was at bottom and isn't actively scrolling
       if (isAtBottomRef.current && !isUserScrollingRef.current) {
         requestAnimationFrame(() => {
           container.scrollTo({
@@ -83,7 +76,6 @@ export function useScrollToBottom() {
       }
     };
 
-    // Watch for DOM changes
     const mutationObserver = new MutationObserver(scrollIfNeeded);
     mutationObserver.observe(container, {
       childList: true,
@@ -91,11 +83,9 @@ export function useScrollToBottom() {
       characterData: true,
     });
 
-    // Watch for size changes
     const resizeObserver = new ResizeObserver(scrollIfNeeded);
     resizeObserver.observe(container);
-
-    // Also observe children for size changes
+    
     for (const child of container.children) {
       resizeObserver.observe(child);
     }

@@ -2,12 +2,27 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useActionState, useEffect, useState } from "react";
 import { AuthForm } from "@/components/auth-form";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
-import { type RegisterActionState, register } from "../actions";
+
+export type RegisterActionState = {
+  status:
+    | "idle"
+    | "in_progress"
+    | "success"
+    | "failed"
+    | "user_exists"
+    | "invalid_data";
+};
+
+async function register(
+  _: RegisterActionState,
+  _formData: FormData
+): Promise<RegisterActionState> {
+  return { status: "idle" };
+}
 
 export default function Page() {
   const router = useRouter();
@@ -22,9 +37,8 @@ export default function Page() {
     }
   );
 
-  const { update: updateSession } = useSession();
+  const { update: updateSession } = { update: async () => {} };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: router and updateSession are stable refs
   useEffect(() => {
     if (state.status === "user_exists") {
       toast({ type: "error", description: "Account already exists!" });
