@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthForm } from "@/components/auth-form";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
 import { registerWithEmail } from "@/lib/firebase/auth";
@@ -56,6 +57,12 @@ export default function Page() {
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful || isPending}>Sign Up</SubmitButton>
+          <div className="relative my-2 flex items-center">
+            <div className="flex-1 border-t border-zinc-200 dark:border-zinc-700" />
+            <span className="mx-3 text-xs text-zinc-400">or</span>
+            <div className="flex-1 border-t border-zinc-200 dark:border-zinc-700" />
+          </div>
+          <GoogleSignInButton />
           <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
             {"Already have an account? "}
             <Link
