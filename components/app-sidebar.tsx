@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { User } from "next-auth";
 import { useState } from "react";
+import { useFirebaseAuth } from "@/lib/firebase/auth-context";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { unstable_serialize } from "swr/infinite";
@@ -34,10 +34,11 @@ import {
 } from "./ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar() {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const { mutate } = useSWRConfig();
+  const { user } = useFirebaseAuth();
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   const handleDeleteAll = () => {
@@ -117,9 +118,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarHistory user={user} />
+          <SidebarHistory />
         </SidebarContent>
-        <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+        <SidebarFooter>{user && <SidebarUserNav />}</SidebarFooter>
       </Sidebar>
 
       <AlertDialog

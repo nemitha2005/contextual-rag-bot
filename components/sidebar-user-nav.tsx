@@ -3,8 +3,9 @@
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { User } from "next-auth";
 import { useTheme } from "next-themes";
+import { useFirebaseAuth } from "@/lib/firebase/auth-context";
+import { signOutUser } from "@/lib/firebase/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +20,13 @@ import {
 } from "@/components/ui/sidebar";
 import { guestRegex } from "@/lib/constants";
 
-export function SidebarUserNav({ user }: { user: User }) {
+export function SidebarUserNav() {
   const router = useRouter();
-  // TODO: replace with your real auth session hook
-  const status = "unauthenticated";
+  const { user } = useFirebaseAuth();
   const isGuest = guestRegex.test(user?.email ?? "");
   const { setTheme, resolvedTheme } = useTheme();
+
+  if (!user) return null;
 
   return (
     <SidebarMenu>
@@ -66,12 +68,13 @@ export function SidebarUserNav({ user }: { user: User }) {
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
               <button
                 className="w-full cursor-pointer"
-                onClick={() => {
+                onClick={async () => {
                   if (isGuest) {
                     router.push("/login");
                   } else {
-                    // TODO: call your real sign-out logic here
-                    router.push("/");
+                    await signOutUser();
+                    router.push("/login");
+                    router.refresh();
                   }
                 }}
                 type="button"
