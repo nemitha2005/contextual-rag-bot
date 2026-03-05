@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo } from "react";
 import Image from "next/image";
-import { useWindowSize } from "usehooks-ts";
 import { SidebarToggle } from "@/components/sidebar-toggle";
 import { Button } from "@/components/ui/button";
 import { useFirebaseAuth } from "@/lib/firebase/auth-context";
@@ -17,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PlusIcon } from "./icons";
-import { useSidebar } from "./ui/sidebar";
 
 function PureChatHeader({
   chatId,
@@ -27,9 +25,7 @@ function PureChatHeader({
   isReadonly: boolean;
 }) {
   const router = useRouter();
-  const { open } = useSidebar();
   const { user, loading } = useFirebaseAuth();
-  const { width: windowWidth } = useWindowSize();
 
   const handleSignOut = async () => {
     await signOutUser();
@@ -38,22 +34,21 @@ function PureChatHeader({
   };
 
   return (
-    <header className="sticky top-0 flex items-center gap-2 bg-background px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-10 flex items-center gap-2 bg-background px-4 py-3 md:px-6">
       <SidebarToggle />
+      <Button
+        className="h-8 px-2 md:h-fit md:px-2"
+        onClick={() => {
+          router.push("/");
+          router.refresh();
+        }}
+        variant="outline"
+      >
+        <PlusIcon />
+        <span className="sr-only">New Chat</span>
+      </Button>
 
-      {(!open || windowWidth < 768) && (
-        <Button
-          className="h-8 px-2 md:h-fit md:px-2"
-          onClick={() => {
-            router.push("/");
-            router.refresh();
-          }}
-          variant="outline"
-        >
-          <PlusIcon />
-          <span className="md:sr-only">New Chat</span>
-        </Button>
-      )}
+      <span className="ml-2 font-semibold text-sm">Anthropic Agent</span>
 
       <div className="ml-auto flex items-center gap-2">
         {!loading && !user && (

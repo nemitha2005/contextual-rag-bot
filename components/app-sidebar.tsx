@@ -1,156 +1,94 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Image from "next/image";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { SidebarHistory } from "@/components/sidebar-history";
 import { useFirebaseAuth } from "@/lib/firebase/auth-context";
-import { toast } from "sonner";
-import { useSWRConfig } from "swr";
-import { unstable_serialize } from "swr/infinite";
-import { PlusIcon, TrashIcon } from "@/components/icons";
-import {
-  getChatHistoryPaginationKey,
-  SidebarHistory,
-} from "@/components/sidebar-history";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function AppSidebar() {
-  const router = useRouter();
-  const { setOpenMobile } = useSidebar();
-  const { mutate } = useSWRConfig();
   const { user } = useFirebaseAuth();
-  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
-
-  const handleDeleteAll = () => {
-    const deletePromise = fetch("/api/history", {
-      method: "DELETE",
-    });
-
-    toast.promise(deletePromise, {
-      loading: "Deleting all chats...",
-      success: () => {
-        mutate(unstable_serialize(getChatHistoryPaginationKey));
-        setShowDeleteAllDialog(false);
-        router.replace("/");
-        router.refresh();
-        return "All chats deleted successfully";
-      },
-      error: "Failed to delete all chats",
-    });
-  };
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <>
-      <Sidebar className="group-data-[side=left]:border-r-0">
-        <SidebarHeader className="px-4 pt-5">
-          <SidebarMenu>
-            <div className="flex flex-row items-center justify-between">
-              <Link
-                className="flex min-w-0 flex-row items-center gap-2"
-                href="/"
-                onClick={() => {
-                  setOpenMobile(false);
-                }}
-              >
-                <Image
-                  alt="Anthropic Agent"
-                  className="rounded-lg"
-                  height={28}
-                  src="/logo.png"
-                  width={28}
-                />
-                <span className="cursor-pointer truncate whitespace-nowrap rounded-md px-1 font-semibold text-lg hover:bg-muted">
-                  Anthropic Agent
-                </span>
-              </Link>
-              <div className="flex flex-row gap-1">
-                {user && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-8 p-1 md:h-fit md:p-2"
-                        onClick={() => setShowDeleteAllDialog(true)}
-                        type="button"
-                        variant="ghost"
-                      >
-                        <TrashIcon />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent align="end" className="hidden md:block">
-                      Delete All Chats
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="h-8 p-1 md:h-fit md:p-2"
-                      onClick={() => {
-                        setOpenMobile(false);
-                        router.push("/");
-                        router.refresh();
-                      }}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <PlusIcon />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent align="end" className="hidden md:block">
-                    New Chat
-                  </TooltipContent>
-                </Tooltip>
+    <Sidebar className="group-data-[side=left]:border-r-0">
+      <SidebarHeader className="px-4 pb-3 pt-6">
+        <Link href="/">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={32}
+            height={32}
+            className="rounded-lg"
+          />
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarHistory />
+      </SidebarContent>
+      <SidebarFooter className="px-3 pb-4">
+        {user ? (
+          <div className="rounded-xl border border-border bg-muted/40 px-3 py-2.5">
+            <div className="flex items-center gap-3">
+              <Image
+                src={user.photoURL ?? `https://avatar.vercel.sh/${user.email}`}
+                alt={user.displayName ?? "User"}
+                width={32}
+                height={32}
+                className="rounded-full shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-sm leading-tight">
+                  {user.displayName ?? "User"}
+                </p>
+                <p className="truncate text-muted-foreground text-xs leading-tight mt-0.5">
+                  {user.email}
+                </p>
               </div>
+              <Button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                size="icon"
+                variant="ghost"
+                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                type="button"
+              >
+                {resolvedTheme === "dark" ? (
+                  <Sun className="size-3.5" />
+                ) : (
+                  <Moon className="size-3.5" />
+                )}
+              </Button>
             </div>
-          </SidebarMenu>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarHistory />
-        </SidebarContent>
-        <SidebarFooter><ThemeToggle /></SidebarFooter>
-      </Sidebar>
-
-      <AlertDialog
-        onOpenChange={setShowDeleteAllDialog}
-        open={showDeleteAllDialog}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete all chats?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete all
-              your chats and remove them from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAll}>
-              Delete All
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-1 py-1">
+            <span className="text-muted-foreground text-xs">
+              {resolvedTheme === "dark" ? "Dark mode" : "Light mode"}
+            </span>
+            <Button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              size="sm"
+              variant="ghost"
+              type="button"
+              className="text-muted-foreground"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </Button>
+          </div>
+        )}
+      </SidebarFooter>
+    </Sidebar>
   );
 }
