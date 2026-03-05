@@ -67,7 +67,7 @@ export function AppSidebar() {
           <SidebarMenu>
             <div className="flex flex-row items-center justify-between">
               <Link
-                className="flex flex-row items-center gap-2"
+                className="flex min-w-0 flex-row items-center gap-2"
                 href="/"
                 onClick={() => {
                   setOpenMobile(false);
@@ -80,7 +80,7 @@ export function AppSidebar() {
                   src="/logo.png"
                   width={28}
                 />
-                <span className="cursor-pointer rounded-md px-1 font-semibold text-lg hover:bg-muted">
+                <span className="cursor-pointer truncate whitespace-nowrap rounded-md px-1 font-semibold text-lg hover:bg-muted">
                   Anthropic Agent
                 </span>
               </Link>
