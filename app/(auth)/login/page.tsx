@@ -2,59 +2,42 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AuthForm } from "@/components/auth-form";
 import { SubmitButton } from "@/components/submit-button";
 import { toast } from "@/components/toast";
-
-export type LoginActionState = {
-  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
-};
-
-async function login(
-  _: LoginActionState,
-  _formData: FormData
-): Promise<LoginActionState> {
-  return { status: "idle" };
-}
+import { signInWithEmail } from "@/lib/firebase/auth";
 
 export default function Page() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
-  const [state, formAction] = useActionState<LoginActionState, FormData>(
-    login,
-    {
-      status: "idle",
+  const handleSubmit = async (formData: FormData) => {
+    const emailValue = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!emailValue || !password) {
+      toast({ type: "error", description: "Failed validating your submission!" });
+      return;
     }
-  );
 
-  const { update: updateSession } = { update: async () => {} };
+    setEmail(emailValue);
+    setIsPending(true);
 
-  useEffect(() => {
-    if (state.status === "failed") {
-      toast({
-        type: "error",
-        description: "Invalid credentials!",
-      });
-    } else if (state.status === "invalid_data") {
-      toast({
-        type: "error",
-        description: "Failed validating your submission!",
-      });
-    } else if (state.status === "success") {
+    try {
+      await signInWithEmail(emailValue, password);
       setIsSuccessful(true);
-      updateSession();
+      router.push("/");
       router.refresh();
+    } catch {
+      toast({ type: "error", description: "Invalid credentials!" });
+    } finally {
+      setIsPending(false);
     }
-  }, [state.status]);
-
-  const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get("email") as string);
-    formAction(formData);
   };
 
   return (
@@ -67,7 +50,7 @@ export default function Page() {
           </p>
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+          <SubmitButton isSuccessful={isSuccessful || isPending}>Sign in</SubmitButton>
           <p className="mt-4 text-center text-gray-600 text-sm dark:text-zinc-400">
             {"Don't have an account? "}
             <Link
