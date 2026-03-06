@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useFirebaseAuth } from "@/lib/firebase/auth-context";
+import { getTimeBasedGreeting } from "@/lib/utils";
 
 export const Greeting = () => {
   const { user } = useFirebaseAuth();
@@ -10,6 +11,7 @@ export const Greeting = () => {
   const firstName = user?.displayName
     ? user.displayName.split(" ")[0]
     : null;
+  const greeting = getTimeBasedGreeting();
 
   return (
     <div
@@ -38,7 +40,7 @@ export const Greeting = () => {
         initial={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.5 }}
       >
-        {firstName ? `Hello, ${firstName}!` : "Hello there!"}
+        {firstName ? `${greeting}, ${firstName}!` : `${greeting}!`}
       </motion.div>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
