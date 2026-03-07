@@ -4,6 +4,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import type { NextRequest } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCurrentUserId } from "@/lib/firebase/server-auth";
+import { chatModels, DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import type { ChatMessage } from "@/lib/types";
 
 function extractText(parts: ChatMessage["parts"]): string {
@@ -30,12 +31,15 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, message, messages: overrideMessages, selectedChatModel } = body as {
+  const { id, message, messages: overrideMessages, selectedChatModel: rawModel } = body as {
     id: string;
     message?: ChatMessage;
     messages?: ChatMessage[];
     selectedChatModel: string;
   };
+
+  const validModelIds = new Set(chatModels.map((m) => m.id));
+  const selectedChatModel = validModelIds.has(rawModel) ? rawModel : DEFAULT_CHAT_MODEL;
 
   let conversationMessages: ChatMessage[];
 
