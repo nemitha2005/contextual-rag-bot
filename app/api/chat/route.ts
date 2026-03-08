@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { streamText } from "ai";
+import { generateText, streamText } from "ai";
 import { FieldValue } from "firebase-admin/firestore";
 import type { NextRequest } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
@@ -61,9 +61,16 @@ export async function POST(request: NextRequest) {
 
   if (!chatDoc.exists) {
     const firstUserMsg = conversationMessages.find((m) => m.role === "user");
-    const title = firstUserMsg
-      ? extractText(firstUserMsg.parts).slice(0, 60)
-      : "New Chat";
+    const userText = firstUserMsg ? extractText(firstUserMsg.parts) : "";
+
+    let title = "New Chat";
+    if (userText) {
+      const { text } = await generateText({
+        model: anthropic("claude-haiku-4-5"),
+        prompt: `Generate a short 4-6 word title for a chat that starts with this message. Reply with only the title, no quotes or punctuation:\n\n${userText.slice(0, 500)}`,
+      });
+      title = text.trim().slice(0, 60);
+    }
 
     await chatRef.set({
       id,
