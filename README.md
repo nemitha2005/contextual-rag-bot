@@ -1,5 +1,7 @@
 # Anthropic Agent
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/nemitha2005/anthropic-agent)
+
 A full-featured AI chat application built with Next.js and the Anthropic Claude API. Supports multi-model selection, real-time streaming, artifact generation, and persistent chat history backed by Firestore.
 
 ![Landing Page](public/display-images/landing-page.png)
@@ -87,6 +89,25 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000).
 
 ![Chat Interface](public/display-images/chat-bot.png)
+
+---
+
+## Deploy
+
+### Vercel (recommended)
+
+1. Push your repo to GitHub
+2. Import it at [vercel.com/new](https://vercel.com/new)
+3. Add all environment variables from the table above in the Vercel project settings
+4. Deploy — Vercel auto-detects Next.js and builds correctly
+
+### Firestore indexes
+
+Before going live, deploy the composite index required for chat history:
+
+```bash
+firebase deploy --only firestore:indexes
+```
 
 ---
 
