@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useArtifact, useArtifactSelector } from "@/hooks/use-artifact";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import type { Vote } from "@/lib/db/schema";
 import { OpenChatError } from "@/lib/errors";
@@ -167,6 +167,39 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  const { artifact, setArtifact } = useArtifact();
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`artifact-${id}`);
+    if (stored) {
+      try {
+        const { documentId, title, kind } = JSON.parse(stored);
+        setArtifact((current) => ({
+          ...current,
+          documentId,
+          title,
+          kind,
+          isVisible: true,
+          status: "idle",
+        }));
+      } catch {
+        localStorage.removeItem(`artifact-${id}`);
+      }
+    }
+  }, [id, setArtifact]);
+
+  useEffect(() => {
+    if (artifact.documentId !== "init" && artifact.status === "idle") {
+      localStorage.setItem(
+        `artifact-${id}`,
+        JSON.stringify({
+          documentId: artifact.documentId,
+          title: artifact.title,
+          kind: artifact.kind,
+        })
+      );
+    }
+  }, [artifact, id]);
 
   useAutoResume({
     autoResume,
