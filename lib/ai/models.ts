@@ -5,6 +5,7 @@ export type ChatModel = {
   name: string;
   provider: string;
   description: string;
+  supportsThinking?: boolean;
 };
 
 export const chatModels: ChatModel[] = [
@@ -14,25 +15,28 @@ export const chatModels: ChatModel[] = [
     name: "Claude Haiku 4.5",
     provider: "anthropic",
     description: "Fastest model with near-frontier intelligence · $1 / $5 MTok",
+    supportsThinking: true,
   },
   {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6",
     provider: "anthropic",
     description: "Best balance of speed and intelligence · $3 / $15 MTok",
+    supportsThinking: true,
   },
   {
     id: "claude-opus-4-6",
     name: "Claude Opus 4.6",
     provider: "anthropic",
     description: "Most intelligent — ideal for agents & coding · $5 / $25 MTok",
+    supportsThinking: true,
   },
-  // ── Extended thinking ────────────────────────────────────────────────────
   {
     id: "claude-3-7-sonnet-20250219",
     name: "Claude Sonnet 3.7",
     provider: "reasoning",
     description: "Classic extended-thinking model",
+    supportsThinking: true,
   },
 ];
 

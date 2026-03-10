@@ -41,11 +41,13 @@ export async function POST(request: NextRequest) {
     message,
     messages: overrideMessages,
     selectedChatModel: rawModel,
+    thinkingEnabled = false,
   } = body as {
     id: string;
     message?: ChatMessage;
     messages?: ChatMessage[];
     selectedChatModel: string;
+    thinkingEnabled?: boolean;
   };
 
   const validModelIds = new Set(chatModels.map((m) => m.id));
@@ -95,12 +97,23 @@ export async function POST(request: NextRequest) {
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
+      const selectedModel = chatModels.find((m) => m.id === selectedChatModel);
+      const useThinking = thinkingEnabled && (selectedModel?.supportsThinking ?? false);
+
       const result = streamText({
         model: anthropic(selectedChatModel),
         messages: await convertToModelMessages(conversationMessages),
         system: SYSTEM_PROMPT,
         stopWhen: stepCountIs(5),
-        tools: {
+        ...(useThinking && {
+          providerOptions: {
+            anthropic: {
+              thinking: { type: "enabled", budgetTokens: 8000 },
+            },
+          },
+        }),
+        ...(!useThinking && {
+          tools: {
           getWeather: tool({
             description: "Get the current weather for a city",
             inputSchema: z.object({
@@ -146,6 +159,7 @@ export async function POST(request: NextRequest) {
             },
           }),
         },
+        }),
         onFinish: async ({ text }) => {
           if (message) {
             await adminDb.collection("messages").doc(message.id).set({

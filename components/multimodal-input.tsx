@@ -3,7 +3,7 @@
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import equal from "fast-deep-equal";
-import { CheckIcon } from "lucide-react";
+import { BrainCircuitIcon, CheckIcon } from "lucide-react";
 import {
   type ChangeEvent,
   type Dispatch,
@@ -67,6 +67,8 @@ function PureMultimodalInput({
   className,
   selectedModelId,
   onModelChange,
+  thinkingEnabled = false,
+  onThinkingChange,
 }: {
   chatId: string;
   input: string;
@@ -81,6 +83,8 @@ function PureMultimodalInput({
   className?: string;
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
+  thinkingEnabled?: boolean;
+  onThinkingChange?: (enabled: boolean) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -381,6 +385,11 @@ function PureMultimodalInput({
               selectedModelId={selectedModelId}
               status={status}
             />
+            <ThinkingButton
+              enabled={thinkingEnabled}
+              onToggle={onThinkingChange}
+              status={status}
+            />
             <ModelSelectorCompact
               onModelChange={onModelChange}
               selectedModelId={selectedModelId}
@@ -420,6 +429,9 @@ export const MultimodalInput = memo(
     if (prevProps.selectedModelId !== nextProps.selectedModelId) {
       return false;
     }
+    if (prevProps.thinkingEnabled !== nextProps.thinkingEnabled) {
+      return false;
+    }
 
     return true;
   }
@@ -454,6 +466,38 @@ function PureAttachmentsButton({
 }
 
 const AttachmentsButton = memo(PureAttachmentsButton);
+
+function PureThinkingButton({
+  enabled,
+  onToggle,
+  status,
+}: {
+  enabled: boolean;
+  onToggle?: (enabled: boolean) => void;
+  status: UseChatHelpers<ChatMessage>["status"];
+}) {
+  return (
+    <Button
+      className={cn(
+        "aspect-square h-8 rounded-lg p-1 transition-colors",
+        enabled
+          ? "bg-primary/10 text-primary hover:bg-primary/20"
+          : "hover:bg-accent"
+      )}
+      disabled={status !== "ready"}
+      onClick={(event) => {
+        event.preventDefault();
+        onToggle?.(!enabled);
+      }}
+      title={enabled ? "Thinking on" : "Thinking off"}
+      variant="ghost"
+    >
+      <BrainCircuitIcon size={14} style={{ width: 14, height: 14 }} />
+    </Button>
+  );
+}
+
+const ThinkingButton = memo(PureThinkingButton);
 
 function PureModelSelectorCompact({
   selectedModelId,

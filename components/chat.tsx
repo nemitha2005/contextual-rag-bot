@@ -58,10 +58,16 @@ export function Chat({
   const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
   const [currentModelId, setCurrentModelId] = useState(initialChatModel);
   const currentModelIdRef = useRef(currentModelId);
+  const [thinkingEnabled, setThinkingEnabled] = useState(false);
+  const thinkingEnabledRef = useRef(thinkingEnabled);
 
   useEffect(() => {
     currentModelIdRef.current = currentModelId;
   }, [currentModelId]);
+
+  useEffect(() => {
+    thinkingEnabledRef.current = thinkingEnabled;
+  }, [thinkingEnabled]);
 
   const {
     messages,
@@ -111,6 +117,7 @@ export function Chat({
               ? { messages: request.messages }
               : { message: lastMessage }),
             selectedChatModel: currentModelIdRef.current,
+            thinkingEnabled: thinkingEnabledRef.current,
             ...request.body,
           },
         };
@@ -197,6 +204,7 @@ export function Chat({
               input={input}
               messages={messages}
               onModelChange={setCurrentModelId}
+              onThinkingChange={setThinkingEnabled}
               selectedModelId={currentModelId}
               sendMessage={sendMessage}
               setAttachments={setAttachments}
@@ -204,6 +212,7 @@ export function Chat({
               setMessages={setMessages}
               status={status}
               stop={stop}
+              thinkingEnabled={thinkingEnabled}
             />
           )}
         </div>
