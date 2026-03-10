@@ -69,8 +69,6 @@ export function DocumentPreview({
       );
     }
 
-    // Canvas is open but tool result not yet available — show compact creating indicator
-    // instead of falling through to the full inline preview (which causes duplicate canvas)
     return (
       <DocumentToolCall
         args={args ?? { title: artifact.title || "Document", kind: artifact.kind }}
