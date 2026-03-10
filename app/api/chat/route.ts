@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
           }),
         },
         }),
-        onFinish: async ({ text }) => {
+        onFinish: async ({ text, reasoning }) => {
           if (message) {
             await adminDb.collection("messages").doc(message.id).set({
               id: message.id,
@@ -174,11 +174,23 @@ export async function POST(request: NextRequest) {
 
           if (text) {
             const assistantId = crypto.randomUUID();
+            const parts: Array<{ type: string; text: string }> = [];
+
+            const reasoningText = reasoning
+              ?.filter((r) => r.type === "reasoning")
+              .map((r) => r.text)
+              .join("");
+
+            if (reasoningText) {
+              parts.push({ type: "reasoning", text: reasoningText });
+            }
+            parts.push({ type: "text", text });
+
             await adminDb.collection("messages").doc(assistantId).set({
               id: assistantId,
               chatId: id,
               role: "assistant",
-              parts: [{ type: "text", text }],
+              parts,
               attachments: [],
               createdAt: FieldValue.serverTimestamp(),
             });
