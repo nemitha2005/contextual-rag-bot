@@ -9,7 +9,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
   title: "Anthropic Agent",
-  description: "A contextual RAG bot built with Next.js, Vercel AI SDK, and Firebase Authentication.",
+  description: "A demo of an AI agent built with Anthropic's API and Vercel's platform.",
 };
 
 export const viewport = {
