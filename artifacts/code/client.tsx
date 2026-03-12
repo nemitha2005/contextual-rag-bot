@@ -15,6 +15,7 @@ import {
   UndoIcon,
 } from "@/components/icons";
 import { generateUUID } from "@/lib/utils";
+import { EyeIcon } from "lucide-react";
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -79,23 +80,39 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     if (streamPart.type === "data-codeDelta") {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
-        content: streamPart.data,
-        isVisible:
-          draftArtifact.status === "streaming" &&
-          draftArtifact.content.length > 300 &&
-          draftArtifact.content.length < 310
-            ? true
-            : draftArtifact.isVisible,
+        content: draftArtifact.content + streamPart.data,
         status: "streaming",
+      }));
+    }
+    if (streamPart.type === "data-finish") {
+      setArtifact((draftArtifact) => ({
+        ...draftArtifact,
+        content: draftArtifact.content.replace(/^```[\w]*\n?/, "").replace(/\n?```\s*$/, ""),
+        status: "idle",
       }));
     }
   },
   content: ({ metadata, setMetadata, ...props }) => {
+    const isHtml =
+      props.content.trimStart().startsWith("<") ||
+      props.content.trimStart().toLowerCase().startsWith("<!doctype");
+
     return (
       <>
         <div className="px-1">
           <CodeEditor {...props} />
         </div>
+
+        {isHtml && props.status === "idle" && (
+          <div className="border-t border-border">
+            <iframe
+              sandbox="allow-scripts"
+              srcDoc={props.content}
+              className="h-[300px] w-full bg-white"
+              title="HTML Preview"
+            />
+          </div>
+        )}
 
         {metadata?.outputs && (
           <Console
@@ -123,7 +140,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
         setMetadata((metadata) => ({
           ...metadata,
           outputs: [
-            ...metadata.outputs,
+            ...(metadata?.outputs ?? []),
             {
               id: runId,
               contents: [],
@@ -185,7 +202,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
           setMetadata((metadata) => ({
             ...metadata,
             outputs: [
-              ...metadata.outputs.filter((output) => output.id !== runId),
+              ...(metadata?.outputs ?? []).filter((output) => output.id !== runId),
               {
                 id: runId,
                 contents: outputContent,
@@ -197,7 +214,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
           setMetadata((metadata) => ({
             ...metadata,
             outputs: [
-              ...metadata.outputs.filter((output) => output.id !== runId),
+              ...(metadata?.outputs ?? []).filter((output) => output.id !== runId),
               {
                 id: runId,
                 contents: [{ type: "text", value: error.message }],
