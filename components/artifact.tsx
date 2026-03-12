@@ -2,6 +2,7 @@ import type { UseChatHelpers } from "@ai-sdk/react";
 import { formatDistance } from "date-fns";
 import equal from "fast-deep-equal";
 import { AnimatePresence, motion } from "framer-motion";
+import { Code2Icon, FileTextIcon, ImageIcon, Table2Icon, XIcon } from "lucide-react";
 import {
   type Dispatch,
   memo,
@@ -16,17 +17,25 @@ import { codeArtifact } from "@/artifacts/code/client";
 import { imageArtifact } from "@/artifacts/image/client";
 import { sheetArtifact } from "@/artifacts/sheet/client";
 import { textArtifact } from "@/artifacts/text/client";
-import { useArtifact } from "@/hooks/use-artifact";
+import { initialArtifactData, useArtifact } from "@/hooks/use-artifact";
 import type { Document, Vote } from "@/lib/db/schema";
 import type { Attachment, ChatMessage } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 import { ArtifactActions } from "./artifact-actions";
-import { ArtifactCloseButton } from "./artifact-close-button";
 import { ArtifactMessages } from "./artifact-messages";
 import { MultimodalInput } from "./multimodal-input";
 import { Toolbar } from "./toolbar";
+import { Button } from "./ui/button";
 import { useSidebar } from "./ui/sidebar";
 import { VersionFooter } from "./version-footer";
+
+function KindIcon({ kind }: { kind: ArtifactKind }) {
+  const props = { size: 15, strokeWidth: 1.75 };
+  if (kind === "code") return <Code2Icon {...props} />;
+  if (kind === "image") return <ImageIcon {...props} />;
+  if (kind === "sheet") return <Table2Icon {...props} />;
+  return <FileTextIcon {...props} />;
+}
 
 
 export const artifactDefinitions = [
@@ -113,7 +122,7 @@ function PureArtifact({
         setCurrentVersionIndex(documents.length - 1);
         setArtifact((currentArtifact) => ({
           ...currentArtifact,
-          content: mostRecentDocument.content ?? "",
+          content: mostRecentDocument.content || currentArtifact.content,
         }));
       }
     }
@@ -298,7 +307,7 @@ function PureArtifact({
                   damping: 30,
                 },
               }}
-              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+              className="relative flex h-dvh w-[400px] shrink-0 flex-col bg-muted dark:bg-background"
               exit={{
                 opacity: 0,
                 x: 0,
@@ -318,7 +327,11 @@ function PureArtifact({
                 )}
               </AnimatePresence>
 
-              <div className="flex h-full flex-col items-center justify-between">
+              <div className="flex shrink-0 items-center border-b border-border px-4 py-3">
+                <span className="text-xs font-medium text-muted-foreground">Chat</span>
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col">
                 <ArtifactMessages
                   addToolApprovalResponse={addToolApprovalResponse}
                   artifactStatus={artifact.status}
@@ -330,23 +343,23 @@ function PureArtifact({
                   status={status}
                   votes={votes}
                 />
+              </div>
 
-                <div className="relative flex w-full flex-row items-end gap-2 px-4 pb-4">
-                  <MultimodalInput
-                    attachments={attachments}
-                    chatId={chatId}
-                    className="bg-background dark:bg-muted"
-                    input={input}
-                    messages={messages}
-                    selectedModelId={selectedModelId}
-                    sendMessage={sendMessage}
-                    setAttachments={setAttachments}
-                    setInput={setInput}
-                    setMessages={setMessages}
-                    status={status}
-                    stop={stop}
-                  />
-                </div>
+              <div className="relative flex w-full flex-row items-end gap-2 border-t border-border px-4 pb-4 pt-3">
+                <MultimodalInput
+                  attachments={attachments}
+                  chatId={chatId}
+                  className="bg-background dark:bg-muted"
+                  input={input}
+                  messages={messages}
+                  selectedModelId={selectedModelId}
+                  sendMessage={sendMessage}
+                  setAttachments={setAttachments}
+                  setInput={setInput}
+                  setMessages={setMessages}
+                  status={status}
+                  stop={stop}
+                />
               </div>
             </motion.div>
           )}
@@ -418,42 +431,54 @@ function PureArtifact({
                   }
             }
           >
-            <div className="flex flex-row items-start justify-between p-2">
-              <div className="flex flex-row items-start gap-4">
-                <ArtifactCloseButton />
-
-                <div className="flex flex-col">
-                  <div className="font-medium">{artifact.title}</div>
-
-                  {isContentDirty ? (
-                    <div className="text-muted-foreground text-sm">
-                      Saving changes...
-                    </div>
-                  ) : document ? (
-                    <div className="text-muted-foreground text-sm">
-                      {`Updated ${formatDistance(
-                        new Date(document.createdAt),
-                        new Date(),
-                        {
-                          addSuffix: true,
-                        }
-                      )}`}
-                    </div>
-                  ) : (
-                    <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
-                  )}
+            <div className="flex flex-row items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex min-w-0 flex-row items-center gap-3">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <KindIcon kind={artifact.kind} />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold">{artifact.title}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {artifact.status === "streaming" ? (
+                      <>
+                        <span className="inline-block size-1.5 animate-pulse rounded-full bg-green-500" />
+                        Generating...
+                      </>
+                    ) : isContentDirty ? (
+                      "Saving..."
+                    ) : document ? (
+                      `Updated ${formatDistance(new Date(document.createdAt), new Date(), { addSuffix: true })}`
+                    ) : (
+                      <div className="h-3 w-24 animate-pulse rounded bg-muted-foreground/20" />
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <ArtifactActions
-                artifact={artifact}
-                currentVersionIndex={currentVersionIndex}
-                handleVersionChange={handleVersionChange}
-                isCurrentVersion={isCurrentVersion}
-                metadata={metadata}
-                mode={mode}
-                setMetadata={setMetadata}
-              />
+              <div className="flex shrink-0 items-center gap-1">
+                <ArtifactActions
+                  artifact={artifact}
+                  currentVersionIndex={currentVersionIndex}
+                  handleVersionChange={handleVersionChange}
+                  isCurrentVersion={isCurrentVersion}
+                  metadata={metadata}
+                  mode={mode}
+                  setMetadata={setMetadata}
+                />
+                <Button
+                  className="size-8 p-0"
+                  onClick={() => {
+                    setArtifact((current) =>
+                      current.status === "streaming"
+                        ? { ...current, isVisible: false }
+                        : { ...initialArtifactData, status: "idle" }
+                    );
+                  }}
+                  variant="ghost"
+                >
+                  <XIcon size={16} />
+                </Button>
+              </div>
             </div>
 
             <div className="h-full max-w-full! items-center overflow-y-scroll bg-background dark:bg-muted">
